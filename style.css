@@ -1,31 +1,82 @@
-        body {
-            margin: 0;
-            padding: 0;
-        }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        html,
-        body,
-        #map {
-            height: 100%;
-        }
+body {
+    font-family: 'Inter', sans-serif;
+    background: #000;
+    overflow: hidden;
+}
 
-        #marker {
-            background-image: url('https://maplibre.org/maplibre-gl-js/docs/assets/washington-monument.jpg');
-            background-size: cover;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-        }
+#map {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    display: flex;
+    /* Center the globe */
+    justify-content: center;
+    /* horizontally */
+    align-items: center;
+    /* and vertically */
+}
 
-        .maplibregl-popup {
-            max-width: 200px;
-        }
+/* Marker styling */
+#marker {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    /* background: radial-gradient(circle, #ff4444, #cc0000); */
+    background-image: url("./image/space.jpg");
+    border: 3px solid white;
+    cursor: pointer;
+    box-shadow:
+        0 0 10px rgba(80, 97, 255, 0.8),
+        0 0 20px rgba(58, 77, 255, 0.4);
+    transition: box-shadow 0.5s ease;
+}
 
-        /* body,
-        html,
-        #map {
-            background: black;
-            background-image: url("./image/space.jpg");
-            background-size: cover;
-        } */
+#marker:hover {
+    transform: scale(2);
+    box-shadow:
+        0 0 15px rgb(29, 71, 255),
+        0 0 30px rgba(12, 29, 255, 0.6);
+}
+
+/* Popup styling */
+.maplibregl-popup-content {
+    background: rgba(20, 20, 40, 0.95);
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(100, 180, 255, 0.5);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+    font-size: 14px;
+    backdrop-filter: blur(10px);
+}
+
+.maplibregl-popup-tip {
+    border-top-color: rgba(20, 20, 40, 0.95);
+}
+
+.maplibregl-popup-close-button {
+    color: #fff;
+    font-size: 20px;
+    padding: 5px 10px;
+}
+
+.maplibregl-popup-close-button:hover {
+    color: #ff4444;
+    background: transparent;
+}
+
+/* Control buttons styling */
+.maplibregl-ctrl button {
+    background: rgba(20, 20, 40, 0.8);
+    border: 1px solid rgba(100, 180, 255, 0.3);
+}
+
+.maplibregl-ctrl button:hover {
+    background: rgba(40, 40, 60, 0.9);
+}

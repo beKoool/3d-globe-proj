@@ -25,13 +25,23 @@ const locations = [
     }
 ];
 
+// const map = new maplibregl.Map({
+//     container: 'map',
+//     // style: 'https://demotiles.maplibre.org/style.json',
+//     style: './map.json',
+
+//     zoom: 2,
+//     center: [80, 20],
+// });
+
 const map = new maplibregl.Map({
     container: 'map',
-    // style: 'https://demotiles.maplibre.org/style.json',
-    style: './map.json',
-    zoom: 2,
-    center: [80, 20],
+    zoom: 0,
+    center: [137.9150899566626, 36.25956997955441],
+    style: 'https://demotiles.maplibre.org/style.json',
+
 });
+
 
 map.on('style.load', () => {
     map.setProjection({
@@ -53,7 +63,7 @@ function rotateGlobe() {
     // rotate ONLY if user is not controlling it,
     // popup is not open, and 2 sec passed after they stop
     if (!userInteracting && !popupOpen && now - lastInteractionTime > 150) {
-        const speed = 0.04;
+        const speed = -0.02;
         const c = map.getCenter();
         map.setCenter([c.lng + speed, c.lat]);
     }
@@ -78,10 +88,16 @@ map.on("mouseup", resumeRotationSoon);
 map.on("dragstart", stopRotationTemporarily);
 map.on("dragend", resumeRotationSoon);
 
-map.on("wheel", stopRotationTemporarily);
+// REMOVE: map.on("wheel", stopRotationTemporarily); 
+// ADD: The following 4 lines to handle zooming and tilting (pitch) correctly
+map.on("zoomstart", stopRotationTemporarily);
+map.on("zoomend", resumeRotationSoon);
+map.on("pitchstart", stopRotationTemporarily);
+map.on("pitchend", resumeRotationSoon);
 
 map.on("touchstart", stopRotationTemporarily);
 map.on("touchend", resumeRotationSoon);
+
 
 // Start rotating
 // map.on("load", () => {
@@ -105,6 +121,8 @@ map.on('load', () => {
     });
 
     rotateGlobe(); // start rotation
+
+
 });
 
 // ------------------------------
@@ -133,3 +151,5 @@ locations.forEach(loc => {
         .setPopup(popup)
         .addTo(map);
 });
+
+
