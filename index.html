@@ -1,19 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <title>Display a globe with a vector map</title>
-    <meta property="og:description" content="Display a globe with a vector map." />
-    <meta charset='utf-8'>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@5.13.0/dist/maplibre-gl.css' />
-    <script src='https://unpkg.com/maplibre-gl@5.13.0/dist/maplibre-gl.js'></script>
-    <link rel="stylesheet" href="./style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Globe Project</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <div id="map"></div>
-    <script src="./app.js"></script>
-</body>
+    <div class="container">
+        <div class="title-wrapper">
+            <span class="status-tag"><i class="fas fa-hammer"></i>  BUILDING</span>
+            <h1>3D Globe Project</h1>
+        </div>
+        <p class="subtitle">Visualizing locations on an interactive 3D globe</p>
 
+        <div class="globe-emoji">🌍</div>
+
+        <div class="section">
+            <h2>Versions</h2>
+            <div class="versions">
+                <a href="versions/cesium.html" class="version-link">
+                    <span class="version-title">
+                        Cesium Version <i class="fas fa-arrow-right"></i>
+                    </span>
+                    <div class="version-tags">
+                        <span class="tag good">Smooth</span>
+                        <span class="tag good">Popup Works</span>
+                        <span class="tag info">Full-Featured</span>
+                    </div>
+                </a>
+                <a href="versions/globegl.html" class="version-link">
+                    <span class="version-title">
+                        Globe.gl Version <i class="fas fa-arrow-right"></i>
+                    </span>
+                    <div class="version-tags">
+                        <span class="tag good">Lightweight</span>
+                        <span class="tag info">Customizable</span>
+                    </div>
+                </a>
+                <a href="versions/maplibre.html" class="version-link">
+                    <span class="version-title">
+                        MapLibre (Immersive) <i class="fas fa-arrow-right"></i>
+                    </span>
+                    <div class="version-tags">
+                        <span class="tag info">Immersive BG</span>
+                        <span class="tag warning">Laggy</span>
+                    </div>
+                </a>
+                <a href="versions/maplibre-simple.html" class="version-link">
+                    <span class="version-title">
+                        MapLibre Simple <i class="fas fa-arrow-right"></i>
+                    </span>
+                    <div class="version-tags">
+                        <span class="tag good">Smooth</span>
+                        <span class="tag info">Clean UI</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Technologies</h2>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <div class="tech-name">Cesium</div>
+                    <div class="tech-desc">Full-featured 3D geospatial platform with terrain, imagery, and powerful visualization</div>
+                </div>
+
+                <div class="tech-item">
+                    <div class="tech-name">Globe.gl</div>
+                    <div class="tech-desc">WebGL-powered globe visualization built on Three.js, lightweight and customizable</div>
+                </div>
+
+                <div class="tech-item">
+                    <div class="tech-name">MapLibre GL</div>
+                    <div class="tech-desc">Open-source mapping library with 3D globe support
+                        <div class="note"><i class="fas fa-exclamation-triangle"></i> Immersive star backgrounds can cause performance issues</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div class="footer-content">
+                <i class="fas fa-rocket"></i> Experimenting with globes • No API keys required
+            </div>
+            <a href="https://linkedin.com/in/anujsapkota" target="_blank" rel="noopener noreferrer" class="made-by">
+                Made with <span class="heart"><i class="fas fa-heart-pulse"></i></span> by <span class="studio-name">anujsapkota</span>
+            </a>
+        </footer>
+    </div>
+
+    <div class="warning-stripe bottom">
+        <div class="warning-text"><i class="fas fa-person-digging"></i>  WORK IN PROGRESS</div>
+    </div>
+</body>
 </html>

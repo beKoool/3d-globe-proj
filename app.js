@@ -25,53 +25,14 @@ const locations = [
     }
 ];
 
-// const map = new maplibregl.Map({
-//     container: 'map',
-//     zoom: 0,
-//     center: [137.9150899566626, 36.25956997955441],
-//     // style: 'https://demotiles.maplibre.org/style.json',
-//     // style: "https://api.protomaps.com/styles/v5/light/en.json?key=d6d2a44f6f976d85",
-//     style: "https://cdn.jsdelivr.net/gh/openmaptiles/osm-bright-gl-style@v1.11/style.json"
-
-// });
-
 const map = new maplibregl.Map({
     container: 'map',
-    style: {
-        version: 8,
-        sources: {
-            'satellite': {
-                type: 'raster',
-                tiles: [
-                    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-                ],
-                tileSize: 256,
-                attribution: '&copy; Esri, Earthstar Geographics'
-            }
-        },
-        layers: [
-            {
-                id: 'background',
-                type: 'background',
-                paint: {
-                    'background-color': '#020409'
-                }
-            },
-            {
-                id: 'satellite-layer',
-                type: 'raster',
-                source: 'satellite',
-                paint: {
-                    'raster-opacity': 1,
-                    'raster-fade-duration': 300
-                }
-            }
-        ]
-    },
-    center: [-98, 39],
-    zoom: 1.5,
-    projection: 'globe',
-    attributionControl: false
+    zoom: 0,
+    center: [137.9150899566626, 36.25956997955441],
+    style: 'https://demotiles.maplibre.org/style.json',
+    // style: "https://api.protomaps.com/styles/v5/light/en.json?key=d6d2a44f6f976d85",
+    // style: "https://cdn.jsdelivr.net/gh/openmaptiles/osm-bright-gl-style@v1.11/style.json"
+
 });
 
 
@@ -131,9 +92,9 @@ map.on("touchend", resumeRotationSoon);
 
 
 // Start rotating
-// map.on("load", () => {
-//     rotateGlobe();
-// });
+map.on("load", () => {
+    rotateGlobe();
+});
 
 map.on('load', () => {
     map.loadImage('./image/space.jpg', (error, image) => {
@@ -155,6 +116,7 @@ map.on('load', () => {
 
 
 });
+
 
 // ------------------------------
 // MULTIPLE MARKERS + POPUPS

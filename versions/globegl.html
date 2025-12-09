@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glowing Globe (WebGL)</title>
+    <!-- Fonts -->
+    <link href='https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap' rel='stylesheet'>
+    
+    <!-- Three.js and Globe.gl -->
+    <script src="//unpkg.com/three"></script>
+    <script src="//unpkg.com/globe.gl"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #000;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        #globeViz {
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+        }
+
+        /* --- Header Styles --- */
+        .header-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(17, 24, 39, 0.55);
+            padding: 16px 22px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 100;
+            max-width: 420px;
+            pointer-events: none; /* Let clicks pass through to globe unless on text */
+        }
+        
+        .header-container * {
+            pointer-events: auto;
+        }
+
+        .header-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 0 3px 0;
+            background: #fff;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .header-subtitle {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.85);
+            margin: 0;
+            font-weight: 200;
+        }
+
+        /* --- Marker Styles (Reused) --- */
+        .marker {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #22D3EE, #6f71f3, #372bb4);
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 12px;
+            text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            /* Necessary for Globe.gl HTML elements to center correctly */
+            transform: translate(-50%, -50%); 
+        }
+
+        .marker:hover {
+            transform: translate(-50%, -50%) scale(1.4);
+            box-shadow: 0 0 2px rgb(120, 200, 255), 0 0 5px rgba(100, 180, 255, 0.9), 0 0 20px rgba(100, 180, 255, 0.7), inset 0 0 5px rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+        }
+
+        /* --- Popup Styles --- */
+        /* We create a custom overlay for the popup */
+        #popup-container {
+            position: absolute;
+            display: none; /* Hidden by default */
+            z-index: 200;
+            background: rgba(17, 24, 39, 0.92);
+            color: #fff;
+            padding: 0;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+            font-size: 14px;
+            backdrop-filter: blur(12px);
+            min-width: 280px;
+            max-width: 320px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Start centered */
+        }
+
+        .popup-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .popup-logo {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px;
+        }
+
+        .popup-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #22D3EE, #6366F1);
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.4px;
+        }
+
+        .popup-title {
+            flex: 1;
+        }
+
+        .popup-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            margin: 0 0 4px 0;
+        }
+
+        .popup-location {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0;
+        }
+
+        .popup-body {
+            padding: 16px 18px;
+            position: relative;
+        }
+
+        .popup-description {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.85);
+            margin: 0 0 12px 0;
+        }
+
+        .popup-link {
+            display: inline-block;
+            color: #22D3EE;
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 12px;
+            border: 1px solid rgba(34, 211, 238, 0.4);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .popup-link:hover {
+            background: rgba(34, 211, 238, 0.15);
+            border-color: rgba(34, 211, 238, 0.6);
+            box-shadow: 0 0 12px rgba(34, 211, 238, 0.25);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: pointer;
+            font-size: 18px;
+            color: #aaa;
+            background: transparent;
+            border: none;
+        }
+        .close-btn:hover { color: #fff; }
+
+    </style>
+</head>
+
+<body>
+    
+    <div id="globeViz"></div>
+
+    <div class="header-container">
+        <h1 class="header-title">Tinkune.com Globe</h1>
+        <p class="header-subtitle">Find Nepali businesses (WebGL Version)</p>
+    </div>
+
+    <!-- Hidden popup container structure -->
+    <div id="popup-container">
+        <button class="close-btn" onclick="closePopup()">×</button>
+        <div id="popup-content"></div>
+    </div>
+
+    <script>
+        // --- 1. Data Setup ---
+        const locations = [
+            {
+                coords: [-77.0353, 38.8895], // [lng, lat]
+                name: "Washington Monument",
+                location: "Washington D.C., USA",
+                description: "Built in 1848",
+                website: "https://www.nps.gov/wamo/index.htm",
+                logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Flag_of_the_United_States.svg/32px-Flag_of_the_United_States.svg.png"
+            },
+            {
+                coords: [2.2945, 48.8584],
+                name: "Eiffel Tower",
+                location: "Paris, France",
+                description: "Built in 1889",
+                website: "https://www.toureiffel.paris/en",
+                logo: "https://upload.wikimedia.org/wikipedia/en/thumb/c/c3/Flag_of_France.svg/32px-Flag_of_France.svg.png"
+            },
+            {
+                coords: [139.6917, 35.6895],
+                name: "Tokyo Tower",
+                location: "Tokyo, Japan",
+                description: "Capital of Japan",
+                website: "https://www.tokyotower.co.jp/en.html",
+                logo: "https://upload.wikimedia.org/wikipedia/en/thumb/9/9e/Flag_of_Japan.svg/32px-Flag_of_Japan.svg.png"
+            },
+            {
+                coords: [151.2153, -33.8568],
+                name: "Sydney Opera House",
+                location: "Sydney, Australia",
+                description: "Opened in 1973",
+                website: "https://www.sydneyoperahouse.com",
+                logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Flag_of_Australia_%28converted%29.svg/32px-Flag_of_Australia_%28converted%29.svg.png"
+            },
+            {
+                coords: [85.3240, 27.7172],
+                name: "Kathmandu Valley",
+                location: "Kathmandu, Nepal",
+                description: "Capital of Nepal",
+                website: "https://welcomenepal.com",
+                logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Flag_of_Nepal.svg/26px-Flag_of_Nepal.svg.png"
+            },
+            {
+                coords: [-0.1276, 51.5074],
+                name: "London",
+                location: "London, United Kingdom",
+                description: "Historic capital with the Thames",
+                website: "https://visitlondon.com",
+                logo: ""
+            },
+            {
+                coords: [-74.0060, 40.7128],
+                name: "New York",
+                location: "New York, USA",
+                description: "The Big Apple",
+                website: "https://www.nycgo.com/",
+                logo: ""
+            },
+            {
+                coords: [77.2090, 28.6139],
+                name: "New Delhi",
+                location: "New Delhi, India",
+                description: "India's capital territory",
+                website: "https://www.delhitourism.gov.in/",
+                logo: "https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg"
+            },
+            {
+                coords: [55.2708, 25.2048],
+                name: "Dubai",
+                location: "Dubai, UAE",
+                description: "City of the future",
+                website: "https://www.visitdubai.com/",
+                logo: ""
+            },
+            {
+                coords: [-46.6333, -23.5505],
+                name: "São Paulo",
+                location: "São Paulo, Brazil",
+                description: "Brazil's vibrant financial center",
+                website: "https://www.cidadedesaopaulo.com/",
+                logo: ""
+            },
+            {
+                coords: [18.4241, -33.9249],
+                name: "Cape Town",
+                location: "Cape Town, South Africa",
+                description: "At the foot of Table Mountain",
+                website: "https://www.capetown.travel/",
+                logo: ""
+            },
+            {
+                coords: [-79.3832, 43.6532],
+                name: "Toronto",
+                location: "Toronto, Canada",
+                description: "On Lake Ontario's northwestern shore",
+                website: "https://www.destinationtoronto.com/",
+                logo: ""
+            }
+        ];
+
+        // --- 2. Globe Initialization ---
+        
+        const world = Globe()
+            (document.getElementById('globeViz'))
+            // Base aesthetic
+            .backgroundColor('#000000')
+            .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
+            .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-day.jpg')
+            .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+            // .showAtmosphere(true)
+            // --- TILE LAYER FOR "ZOOMING SHOWS INFO" ---
+            // We use CartoDB Dark Matter tiles for a sleek look that reveals roads/cities on zoom
+            // .tilesData([{
+            //     // Standard XYZ Tile URL
+            //     url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+            //     attribution: '&copy; OpenStreetMap &copy; CartoDB'
+            // }])
+            // .tileWidth(256)
+            // .tileHeight(256)
+            // .tilesTransitionDuration(0) // Snappy transition
+            
+            // --- HTML MARKERS ---
+            .htmlElementsData(locations)
+            .htmlLat(d => d.coords[1]) // Lat is index 1
+            .htmlLng(d => d.coords[0]) // Lng is index 0
+            .htmlElement(d => {
+                const el = document.createElement('div');
+                el.className = 'marker';
+                
+                // Add click event for popup
+                el.onclick = (e) => {
+                    e.stopPropagation(); // Prevent globe click
+                    showPopup(d);
+                    
+                    // Fly to location
+                    world.pointOfView({
+                        lat: d.coords[1],
+                        lng: d.coords[0],
+                        altitude: 1.5 // Zoom level
+                    }, 1500);
+                };
+                return el;
+            });
+
+        // --- 3. Configuration & Animation ---
+        
+        // Auto-rotation controls
+        world.controls().autoRotate = true;
+        world.controls().autoRotateSpeed = 0.5;
+        
+        // Disable rotation when user interacts
+        world.controls().addEventListener('start', () => {
+            world.controls().autoRotate = false;
+        });
+        
+        // Optional: Resume rotation after timeout (uncomment if desired)
+        /*
+        let restartRotateTimer;
+        world.controls().addEventListener('end', () => {
+            clearTimeout(restartRotateTimer);
+            restartRotateTimer = setTimeout(() => {
+                world.controls().autoRotate = true;
+            }, 3000);
+        });
+        */
+
+        // Initial View
+        world.pointOfView({ lat: 20, lng: 80, altitude: 2.5 });
+
+        // --- 4. Popup Logic ---
+        
+        const popupContainer = document.getElementById('popup-container');
+        const popupContent = document.getElementById('popup-content');
+
+        function showPopup(loc) {
+            // Generate HTML
+            const initial = (loc.name && loc.name.trim()) ? loc.name.trim().charAt(0).toUpperCase() : '?';
+            const hasLogo = (typeof loc.logo === 'string') && loc.logo.trim() !== '';
+            
+            const logoHTML = hasLogo
+                ? `<img src="${loc.logo}" alt="${loc.name}" class="popup-logo" />`
+                : `<div class="popup-avatar">${initial}</div>`;
+
+            const html = `
+                <div class="popup-header">
+                    ${logoHTML}
+                    <div class="popup-title">
+                        <h3 class="popup-name">${loc.name}</h3>
+                        <p class="popup-location">${loc.location}</p>
+                    </div>
+                </div>
+                <div class="popup-body">
+                    <p class="popup-description">${loc.description}</p>
+                    <a href="${loc.website}" target="_blank" class="popup-link">Visit Website →</a>
+                </div>
+            `;
+
+            popupContent.innerHTML = html;
+            popupContainer.style.display = 'block';
+            
+            // Stop rotation when viewing popup
+            world.controls().autoRotate = false;
+        }
+
+        function closePopup() {
+            popupContainer.style.display = 'none';
+            // Resume rotation
+            world.controls().autoRotate = true;
+        }
+
+        // Close popup if clicking on empty space
+        document.getElementById('globeViz').addEventListener('click', (e) => {
+            // If the click target is the canvas itself, close popup
+            if(e.target.tagName === 'CANVAS') {
+                closePopup();
+            }
+        });
+
+    </script>
+</body>
+
+</html>
